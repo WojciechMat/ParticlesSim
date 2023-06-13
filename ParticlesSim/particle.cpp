@@ -1,7 +1,7 @@
 #include "particle.h"
 #include "settings.h"
-Particle::Particle(double vx, double vy, double x, double y, double mass, double radius) :
-	vx(vx), vy(vy), x(x), y(y), mass(mass), radius(radius), count(0) {}
+#include <amp_graphics.h>
+
 void Particle::move(double t) {
 	x += t * vx;
 	y += t * vy;
@@ -42,4 +42,7 @@ void Particle::bounceOffParticle(Particle& p) {
 	p.vy -= Fy / p.mass;
 	count++;
 	p.count++;
+}
+void Particle::draw() {
+	
 }
