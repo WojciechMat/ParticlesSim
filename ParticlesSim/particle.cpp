@@ -1,7 +1,6 @@
 #include "particle.h"
 #include "settings.h"
-#include <amp_graphics.h>
-
+int Particle::particle_count = 0;
 void Particle::move(double t) {
 	x += t * vx;
 	y += t * vy;

@@ -1,6 +1,5 @@
 #define BOOST_TEST_MODULE mytests
 #include <boost/test/included/unit_test.hpp>
-#include "particle.h"
 #include "simulation.h"
 #include<iostream>
 
@@ -57,10 +56,10 @@ namespace simulation_tests {
 	Particle g(5.0, 5.0, 334, 331, 1.0, 1.0);
 	Particle h(1.0, -1.0, 87, 31, 1.0, 1.0);
 	Particle particles[8] = { a, b, c, d, e, f, g, h };
-	Simulation sim(particles);
+	Simulation sim(particles, 8);
 	BOOST_AUTO_TEST_CASE(constructorTest) {
 		BOOST_TEST(particles);
-		BOOST_TEST(&particles[2] == &b);
+		BOOST_TEST(particles[2].id == 3);
 
 	}
 
