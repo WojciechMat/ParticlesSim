@@ -24,7 +24,7 @@ void Simulation::predict(Particle& p) {
     pq.push(Event(t + p.timeToHitHorizontalWall(), nullptr, &p));
 }
 
-// Simulation method with a time limit
+// Event-driven simulation
 void Simulation::simulate(double limit) {
     std::cout << "Starting simulation with limit: " << limit << std::endl;
     for (int i = 0; i < n; ++i) predict(particles[i]);
@@ -69,6 +69,6 @@ void Simulation::redraw(double limit) {
 
 // Run simulation continuously with limit
 void Simulation::runSimulation() {
-    double limit = 100000.0;  // Example limit, adjust as necessary
-        simulate(limit);
+    double limit = 100000.0;
+    simulate(limit);
 }
