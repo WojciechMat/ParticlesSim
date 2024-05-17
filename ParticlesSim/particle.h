@@ -10,8 +10,6 @@ public:
     const bool exists;
     const double mass;
     int count;
-    sf::Vector2f position;
-    sf::Vector2f velocity;
     const float radius;
 
     Particle();
@@ -25,4 +23,6 @@ public:
     void bounceOffVerticalWall();
     void bounceOffHorizontalWall();
     const bool exist() const { return exists; }
+
+	friend std::ostream& operator<<(std::ostream& os, const Particle& p);
 };

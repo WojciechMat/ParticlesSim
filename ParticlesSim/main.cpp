@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
             std::lock_guard<std::mutex> lock(simulation.mtx);
             for (const auto& particle : particles) {
                 sf::CircleShape shape(particle.radius);
-                shape.setPosition(particle.position.x - particle.radius, particle.position.y - particle.radius);
+                shape.setPosition(particle.x - particle.radius, particle.y - particle.radius);
                 shape.setFillColor(sf::Color::Green);
                 window.draw(shape);
             }

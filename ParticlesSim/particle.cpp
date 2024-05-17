@@ -7,15 +7,11 @@ int Particle::particle_count = 0;
 Particle::Particle() : exists(false), radius(0), mass(0), id(0), count(0), vx(0), vy(0), x(0), y(0) {}
 
 Particle::Particle(double vx, double vy, double x, double y, double mass, double radius) :
-    vx(vx), vy(vy), x(x), y(y), mass(mass), radius(radius), count(0), exists(true), id{++particle_count} {
-    position = sf::Vector2f(x, y);
-    velocity = sf::Vector2f(vx, vy);
-}
+    vx(vx), vy(vy), x(x), y(y), mass(mass), radius(radius), count(0), exists(true), id{++particle_count} {}
 
 void Particle::move(double t) {
     x += vx * t;
     y += vy * t;
-    position = sf::Vector2f(x, y);
 }
 
 double Particle::timeToHit(Particle& p) {
@@ -71,4 +67,15 @@ void Particle::bounceOffVerticalWall() {
 void Particle::bounceOffHorizontalWall() {
     vy = -vy;
     count++;
+}
+
+std::ostream& operator<<(std::ostream& os, const Particle& p) {
+    os << "Particle(id=" << p.id
+       << ", position=(" << p.x << ", " << p.y << ")"
+       << ", velocity=(" << p.vx << ", " << p.vy << ")"
+       << ", mass=" << p.mass
+       << ", radius=" << p.radius
+       << ", exists=" << p.exists
+       << ", count=" << p.count << ")";
+    return os;
 }

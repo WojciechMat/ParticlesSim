@@ -22,4 +22,5 @@ public:
         if (p2 != nullptr && p2->count != countB) return false;
         return true;
     }
+    friend std::ostream& operator<<(std::ostream& os, const Event& e);
 };
