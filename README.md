@@ -36,7 +36,7 @@ Boost (version 1.65.1 or later)
 
 ```sh
 cd build
-cmake ..
+cmake ../ParticlesSim
 
 make
 ```
