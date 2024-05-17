@@ -1,5 +1,0 @@
-﻿  tests.cpp
-C:\Users\wmats\source\repos\ParticlesSim\ParticlesSim\Event.h(12,58): warning C4227: użyto konstrukcji przestarzałej: kwalifikatory dla odwołania są ignorowane
-C:\Users\wmats\source\repos\ParticlesSim\ParticlesSim\simulation.h(11,36): warning C4227: użyto konstrukcji przestarzałej: kwalifikatory dla odwołania są ignorowane
-C:\Users\wmats\source\repos\ParticlesSim\ParticlesSim\simulation.h(11,53): warning C4227: użyto konstrukcji przestarzałej: kwalifikatory dla odwołania są ignorowane
-  ParticlesSim.vcxproj -> C:\Users\wmats\source\repos\ParticlesSim\x64\Debug\ParticlesSim.exe
