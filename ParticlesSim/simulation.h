@@ -1,24 +1,27 @@
 #pragma once
 #include <queue>
-#include "Event.h"
+#include <mutex>
+#include <condition_variable>
 #include "particle.h"
-#include "settings.h"
+#include "event.h"
 
 class Simulation {
-private:
-	class Compare {
-	public:
-		double operator()(Event& const e1, Event& const e2) {
-			return e1.getTime() - e2.getTime();
-		}
-	};
-	std::priority_queue<Event, std::vector<Event>, Compare> queue;
-	double t = 0.0;
-	int n;
-	Particle* particles;
 public:
-	Simulation(Particle* particles, int n);
+    Simulation(Particle* particles, int n);
+    void simulate(double limit);
+    void runSimulation();
 	void predict(Particle& p);
 
-	void simulate();
+    std::mutex mtx;
+    std::condition_variable cv;
+	std::priority_queue<Event> pq;
+
+private:
+    int n;
+    Particle* particles;
+    
+    double t = 0.0;
+
+    
+    void redraw(double limit);
 };
