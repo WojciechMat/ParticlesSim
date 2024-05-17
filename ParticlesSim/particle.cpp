@@ -1,47 +1,74 @@
 #include "particle.h"
 #include "settings.h"
+#include <cmath>
+
 int Particle::particle_count = 0;
-void Particle::move(double t) {
-	x += t * vx;
-	y += t * vy;
-}
-double Particle::timeToHitHorizontalWall() {
-	return (abs(window_height - y)) / vy;
-}
-double Particle::timeToHitVerticalWall() {
-	return (abs(window_width - x)) / vx;
-}
-double Particle::timeToHit(Particle& p) {
-	if (&p == this) return INFINITY;
-	double dx = x - p.x, dy = y - p.y;
-	double dvx = vx - p.vx, dvy = vy - p.vy;
-	double dvdr = dx * dvx + dy * dvy;
-	if (dvdr > 0) return INFINITY;
-	double dvdv = dvx * dvx + dvy * dvy;
-	double drdr = dx * dx + dy * dy;
-	double dist = radius + p.radius;
-	double d = (dvdr * dvdr) - dvdv * (drdr - dist * dist);
-	if (d < 0) return INFINITY;
-	return -(dvdr + sqrt(d)) / dvdv;
+
+Particle::Particle() : exists(false), radius(0), mass(0), id(0), count(0), vx(0), vy(0), x(0), y(0) {}
+
+Particle::Particle(double vx, double vy, double x, double y, double mass, double radius) :
+    vx(vx), vy(vy), x(x), y(y), mass(mass), radius(radius), count(0), exists(true), id{++particle_count} {
+    position = sf::Vector2f(x, y);
+    velocity = sf::Vector2f(vx, vy);
 }
 
-void Particle::bounceOffHorizontalWall() { vy = -vy; }
-void Particle::bounceOffVerticalWall() { vx = -vx; }
-void Particle::bounceOffParticle(Particle& p) {
-	double dx = p.x - x, dy = p.y - y;
-	double dvx = p.vx - vx, dvy = p.vy - vy;
-	double dvdr = dx * dvx + dy * dvy;
-	double dist = radius + p.radius;
-	double F = 2 * mass * p.mass * dvdr / ((mass + p.mass) * dist);
-	double Fx = F * dx / dist;
-	double Fy = F * dy / dist;
-	vx += Fx / mass;
-	vy += Fy / mass;
-	p.vx -= Fx / p.mass;
-	p.vy -= Fy / p.mass;
-	count++;
-	p.count++;
+void Particle::move(double t) {
+    x += vx * t;
+    y += vy * t;
+    position = sf::Vector2f(x, y);
 }
-void Particle::draw() {
-	
+
+double Particle::timeToHit(Particle& p) {
+    if (this == &p) return INFINITY;
+    double dx = p.x - x, dy = p.y - y;
+    double dvx = p.vx - vx, dvy = p.vy - vy;
+    double dvdr = dx * dvx + dy * dvy;
+    if (dvdr > 0) return INFINITY;
+    double dvdv = dvx * dvx + dvy * dvy;
+    double drdr = dx * dx + dy * dy;
+    double sigma = radius + p.radius;
+    double d = (dvdr * dvdr) - dvdv * (drdr - sigma * sigma);
+    if (d < 0) return INFINITY;
+    return -(dvdr + sqrt(d)) / dvdv;
+}
+
+double Particle::timeToHitVerticalWall() {
+    if (vx > 0) return (window_width - x - radius) / vx;
+    else if (vx < 0) return (x - radius) / -vx;
+    else return INFINITY;
+}
+
+double Particle::timeToHitHorizontalWall() {
+    if (vy > 0) return (window_height - y - radius) / vy;
+    else if (vy < 0) return (y - radius) / -vy;
+    else return INFINITY;
+}
+
+void Particle::bounceOffParticle(Particle& p) {
+    double dx = p.x - x, dy = p.y - y;
+    double dvx = p.vx - vx, dvy = p.vy - vy;
+    double dvdr = dx * dvx + dy * dvy;
+    double dist = radius + p.radius;
+
+    double magnitude = 2 * mass * p.mass * dvdr / ((mass + p.mass) * dist);
+    double fx = magnitude * dx / dist;
+    double fy = magnitude * dy / dist;
+
+    vx += fx / mass;
+    vy += fy / mass;
+    p.vx -= fx / p.mass;
+    p.vy -= fy / p.mass;
+
+    count++;
+    p.count++;
+}
+
+void Particle::bounceOffVerticalWall() {
+    vx = -vx;
+    count++;
+}
+
+void Particle::bounceOffHorizontalWall() {
+    vy = -vy;
+    count++;
 }

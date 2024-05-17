@@ -2,20 +2,24 @@
 #include "particle.h"
 
 class Event {
-private:
-	double time;
-	int count1, count2;
 public:
-	Particle *p1, *p2;
-	Event(const Event& e) :
-		time(e.time), count1(e.count1), count2(e.count2), p1(e.p1), p2(e.p2) {}
-	Event(double t, Particle& const p1, Particle& const p2) :
-		time(t), count1(p1.count), count2(p2.count), p1(&p1), p2(&p2) {}
+    double time;
+    Particle* p1;
+    Particle* p2;
+    int countA, countB;
 
-	bool isValid() {
-		return count1 == p1->count && count2 == p2->count;
-	}
-	double getTime() const {
-		return time;
-	}
+    Event(double t, Particle* a, Particle* b) : time(t), p1(a), p2(b) {
+        countA = a != nullptr ? a->count : -1;
+        countB = b != nullptr ? b->count : -1;
+    }
+
+    bool operator<(const Event& that) const {
+        return this->time > that.time;
+    }
+
+    bool isValid() {
+        if (p1 != nullptr && p1->count != countA) return false;
+        if (p2 != nullptr && p2->count != countB) return false;
+        return true;
+    }
 };

@@ -1,45 +1,74 @@
 #include "simulation.h"
-#include "particle.h"
-#include "Event.h"
+#include "settings.h"
+#include <cmath>
+#include <iostream>
+#include <thread>
+#include <chrono>
+#include <SFML/Graphics.hpp>
 
-Simulation::Simulation(Particle* particles, int n): n(n){
-	(*this).particles = particles;
-	if (!particles) throw "error when constructing simulation";
+// Constructor
+Simulation::Simulation(Particle* particles, int n) : n(n) {
+    this->particles = particles;
+    if (!particles) throw "error when constructing simulation";
+    std::cout << "Simulation constructed with " << n << " particles." << std::endl;
 }
 
+// Prediction method
 void Simulation::predict(Particle& p) {
-	if (&p == nullptr || p.exist() == false) return;
-	for (int i = 0; i < n; ++i) {
-		double dt = p.timeToHit(particles[i]);
-		queue.push(Event(t + dt, p, particles[i]));
-	}
-	Particle none;
-	queue.push(Event(t + p.timeToHitVerticalWall(), p, none));
-	queue.push(Event(t + p.timeToHitHorizontalWall(), none, p));
-}
-void Simulation::simulate() {
-	for (int i = 0; i < n; ++i) predict(particles[i]);
-	Particle none;
-	queue.push(Event(0, none, none));
-	while (!std::empty(queue)) {
-		Event event(queue.top());
-		queue.pop();
-		if (!event.isValid()) continue;
-		Particle& p1 = *event.p1;
-		Particle& p2 = *event.p2;
-		
-		for (int i = 0; i < n; ++i) {
-			particles[i].move(event.getTime() - t);
-		}
-		t = event.getTime();
-
-		if (p1.exist() && p2.exist()) p1.bounceOffParticle(p2);
-		else if (p1.exist() && !p2.exist()) p1.bounceOffVerticalWall();
-		else if (!p1.exist() && p2.exist()) p2.bounceOffHorizontalWall();
-		else if (!p1.exist() && !p2.exist()) {};
-
-		predict(p1);
-		predict(p2);
-	}
+    if (!p.exist()) return;
+    for (int i = 0; i < n; ++i) {
+        double dt = p.timeToHit(particles[i]);
+        pq.push(Event(t + dt, &p, &particles[i]));
+    }
+    pq.push(Event(t + p.timeToHitVerticalWall(), &p, nullptr));
+    pq.push(Event(t + p.timeToHitHorizontalWall(), nullptr, &p));
 }
 
+// Simulation method with a time limit
+void Simulation::simulate(double limit) {
+    std::cout << "Starting simulation with limit: " << limit << std::endl;
+    for (int i = 0; i < n; ++i) predict(particles[i]);
+    pq.push(Event(0, nullptr, nullptr));
+    while (!pq.empty() && t < limit) {
+        Event event = pq.top();
+        pq.pop();
+        if (!event.isValid()) continue;
+        Particle* a = event.p1;
+        Particle* b = event.p2;
+
+        // Critical section for updating particles
+        {
+            std::lock_guard<std::mutex> lock(mtx);
+            for (int i = 0; i < n; ++i) {
+                particles[i].move(event.time - t);
+            }
+        }
+
+        t = event.time;
+
+        if (a != nullptr && b != nullptr) a->bounceOffParticle(*b);
+        else if (a != nullptr && b == nullptr) a->bounceOffVerticalWall();
+        else if (a == nullptr && b != nullptr) b->bounceOffHorizontalWall();
+        else if (a == nullptr && b == nullptr) redraw(limit);  // Redraw the particles
+
+        if (a != nullptr) predict(*a);
+        if (b != nullptr) predict(*b);
+    }
+}
+
+// Redraw method
+void Simulation::redraw(double limit) {
+    std::lock_guard<std::mutex> lock(mtx);
+    // Signal the main thread to refresh the window
+    cv.notify_one();
+    std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    if (t < limit) {
+        pq.push(Event(t + 1.0 / HZ, nullptr, nullptr));  // Adjusting event time
+    }
+}
+
+// Run simulation continuously with limit
+void Simulation::runSimulation() {
+    double limit = 100000.0;  // Example limit, adjust as necessary
+        simulate(limit);
+}
