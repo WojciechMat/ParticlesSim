@@ -46,7 +46,13 @@ int main(int argc, char* argv[]) {
         sf::Event event;
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed)
+            {
+                pthread_cancel(simulationThread.native_handle());
                 window.close();
+                simulationThread.join();
+                return 0;
+                
+            }
         }
 
         {
