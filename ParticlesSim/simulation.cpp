@@ -7,9 +7,9 @@
 #include <SFML/Graphics.hpp>
 
 // Constructor
-Simulation::Simulation(Particle* particles, int n) : n(n) {
-    this->particles = particles;
-    if (!particles) throw "error when constructing simulation";
+Simulation::Simulation(std::vector<Particle>& particles, sf::RenderWindow* window): particles(particles){
+    this->window = window;
+    this->n = particles.size();
     std::cout << "Simulation constructed with " << n << " particles." << std::endl;
 }
 
@@ -29,7 +29,8 @@ void Simulation::simulate(double limit) {
     std::cout << "Starting simulation with limit: " << limit << std::endl;
     for (int i = 0; i < n; ++i) predict(particles[i]);
     pq.push(Event(0, nullptr, nullptr));
-    while (!pq.empty() && t < limit) {
+    while (!pq.empty() && t < limit && this->window->isOpen()) {
+        
         Event event = pq.top();
         pq.pop();
         if (!event.isValid()) continue;
@@ -38,7 +39,6 @@ void Simulation::simulate(double limit) {
 
         // Critical section for updating particles
         {
-            std::lock_guard<std::mutex> lock(mtx);
             for (int i = 0; i < n; ++i) {
                 particles[i].move(event.time - t);
             }
@@ -58,13 +58,31 @@ void Simulation::simulate(double limit) {
 
 // Redraw method
 void Simulation::redraw(double limit) {
-    std::lock_guard<std::mutex> lock(mtx);
-    // Signal the main thread to refresh the window
-    cv.notify_one();
-    std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    sf::Event event;
+    while (this->window->pollEvent(event)) {
+        if (event.type == sf::Event::Closed)
+        {
+            this->window->close();
+            exit(0);
+        }
+    }
+    
+    this->window->clear();
+    {
+        for (const auto& particle : particles) {
+            sf::CircleShape shape(particle.radius);
+            shape.setPosition(particle.x - particle.radius, particle.y - particle.radius);
+            shape.setFillColor(sf::Color::Green);
+            window->draw(shape);
+        }
+    }
+    this->window->display();
+
     if (t < limit) {
         pq.push(Event(t + 1.0 / HZ, nullptr, nullptr));  // Adjusting event time
     }
+    std::this_thread::sleep_for(std::chrono::milliseconds((int)(1000/HZ)));
+    
 }
 
 // Run simulation continuously with limit

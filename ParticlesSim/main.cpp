@@ -38,42 +38,9 @@ int main(int argc, char* argv[]) {
         particles.emplace_back(Particle(velX, velY, posX, posY, 1.0, RADIUS));
     }
 
-    Simulation simulation(particles.data(), n);
+    Simulation simulation(particles, &window);
 
-    std::thread simulationThread(&Simulation::runSimulation, &simulation);
-
-    while (window.isOpen()) {
-        sf::Event event;
-        while (window.pollEvent(event)) {
-            if (event.type == sf::Event::Closed)
-            {
-                pthread_cancel(simulationThread.native_handle());
-                window.close();
-                simulationThread.join();
-                return 0;
-                
-            }
-        }
-
-        {
-            std::unique_lock<std::mutex> lock(simulation.mtx);
-            simulation.cv.wait(lock);  // Wait for notification from the simulation thread
-        }
-
-        window.clear();
-        {
-            std::lock_guard<std::mutex> lock(simulation.mtx);
-            for (const auto& particle : particles) {
-                sf::CircleShape shape(particle.radius);
-                shape.setPosition(particle.x - particle.radius, particle.y - particle.radius);
-                shape.setFillColor(sf::Color::Green);
-                window.draw(shape);
-            }
-        }
-        window.display();
-    }
-
-    simulationThread.join();
+    simulation.runSimulation();
 
     return 0;
 }

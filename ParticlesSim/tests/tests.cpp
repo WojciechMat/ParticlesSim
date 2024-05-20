@@ -103,33 +103,3 @@ BOOST_AUTO_TEST_CASE(event_priority_queue) {
     pq.pop();
 }
 }
-
-namespace simulation_tests {
-    Particle a(1.0, 2.0, 320.0, 320.0, 1.0, 1.0);
-    Particle b(1.0, 3.0, 321.0, 320.0, 1.0, 8.0);
-    Particle c(-1.3, 2.3, 320.0, 30.0, 1.0, 2.0);
-    Particle d(1.2, 0.0, 0.0, 20.0, 5.0, 1.0);
-    Particle e(1.2, -2.0, 32.0, 30.0, 1.0, 1.0);
-    Particle f(1.0, 0.0, 20.0, 20.0, 1.0, 1.0);
-    Particle g(5.0, 5.0, 334.0, 331.0, 1.0, 1.0);
-    Particle h(1.0, -1.0, 87.0, 31.0, 1.0, 1.0);
-    Particle particles[8] = { a, b, c, d, e, f, g, h };
-    Simulation sim(particles, 8);
-
-    BOOST_AUTO_TEST_CASE(constructorTest) {
-        BOOST_TEST(particles);
-        BOOST_TEST(particles[2].id == 3);
-    }
-
-    BOOST_AUTO_TEST_CASE(simulationPredictTest) {
-        sim.predict(particles[0]);
-        BOOST_TEST(!sim.pq.empty());
-    }
-
-    BOOST_AUTO_TEST_CASE(simulationRunTest) {
-        std::thread simulationThread(&Simulation::runSimulation, &sim);
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));  // Let the simulation run or a short while
-        BOOST_TEST(!sim.pq.empty());  // Expect the priority queue to have some events
-        simulationThread.detach();  // Detach the thread since we don't join it here
-    }
-}
