@@ -79,7 +79,7 @@ void Simulation::redraw(double limit) {
     this->window->display();
 
     if (t < limit) {
-        pq.push(Event(t + 1.0 / HZ, nullptr, nullptr));  // Adjusting event time
+        pq.push(Event(t + 1.0 / HZ, nullptr, nullptr));
     }
     std::this_thread::sleep_for(std::chrono::milliseconds((int)(1000/HZ)));
     
